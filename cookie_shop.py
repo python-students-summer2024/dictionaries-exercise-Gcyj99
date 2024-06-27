@@ -3,7 +3,7 @@ Functions necessary for running a virtual cookie shop.
 See README.md for instructions.
 Do not run this file directly.  Rather, run main.py instead.
 """
-
+import csv
 
 def bake_cookies(filepath):
     """
@@ -16,8 +16,14 @@ def bake_cookies(filepath):
     :returns: A list of all cookie data, where each cookie is represented as a dictionary.
     """
     # write your code for this function below here.
-
-
+    cookies = []
+    with open(filepath, newline='') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            # Remove dollar sign from the price and convert to float
+            row['price'] = float(row['price'].replace('$', ''))
+            cookies.append(row)
+        return cookies
 def welcome():
     """
     Prints a welcome message to the customer in the format:
@@ -27,7 +33,8 @@ def welcome():
 
     """
     # write your code for this function below this line
-
+    print("Welcome to the Python Cookie Shop!")
+    print("We feed each according to their need.\n")
 
 def display_cookies(cookies):
     """
@@ -48,9 +55,13 @@ def display_cookies(cookies):
     :param cookies: a list of all cookies in the shop, where each cookie is represented as a dictionary.
     """
     # write your code for this function below this line
+    print("Here are the cookies we have in the shop for you:\n")
+    for idx, cookie in enumerate(cookies, start=1):
+        print(f"#{idx} - {cookie['title']}")
+        print(f"  {cookie['description']}")
+        print(f"  Price: ${cookie['price']}\n")
 
-
-def get_cookie_from_dict(id, cookies):
+def get_cookie_from_dict(cookie_id, cookies):
     """
     Finds the cookie that matches the given id from the full list of cookies.
 
@@ -59,7 +70,10 @@ def get_cookie_from_dict(id, cookies):
     :returns: the matching cookie, as a dictionary
     """
     # write your code for this function below this line
-
+    for cookie in cookies:
+        if int(cookie['id']) == cookie_id:
+            return cookie
+    return None
 
 def solicit_quantity(id, cookies):
     """
@@ -77,7 +91,11 @@ def solicit_quantity(id, cookies):
     :returns: The quantity the user entered, as an integer.
     """
     # write your code for this function below this line
-
+    while True:
+        quantity_input = input("Enter the quantity: ").strip()
+        if quantity_input.isdigit() and int(quantity_input) > 0:
+            return int(quantity_input)
+        print("Invalid quantity. Please enter a positive integer.")
 
 def solicit_order(cookies):
     """
@@ -96,7 +114,18 @@ def solicit_order(cookies):
     :returns: A list of the ids and quantities of each cookies the user wants to order.
     """
     # write your code for this function below this line
-
+    order = []
+    while True:
+        user_input = input("Enter the cookie ID to order (or 'finished', 'done', 'quit', 'exit' to complete): ").strip().lower()
+        if user_input in ['finished', 'done', 'quit', 'exit']:
+            break
+        if not user_input.isdigit() or int(user_input) not in range(1, len(cookies) + 1):
+            print("Invalid ID. Please enter a valid cookie ID.")
+            continue
+        cookie_id = int(user_input)
+        quantity = solicit_quantity(cookie_id, cookies)
+        order.append({'id': cookie_id, 'quantity': quantity})
+    return order
 
 def display_order_total(order, cookies):
     """
@@ -118,7 +147,18 @@ def display_order_total(order, cookies):
 
     """
     # write your code for this function below this line
-
+    print("\nThank you for your order. You have ordered:\n")
+    total_cost = 0
+    for item in order:
+        cookie = get_cookie_from_dict(item['id'], cookies)
+        if cookie:
+            quantity = item['quantity']
+            total_cost += float(cookie['price']) * quantity
+            print(f"-{quantity} {cookie['title']}")
+    print(f"\nYour total is ${total_cost:.2f}.")
+    print("Please pay with Bitcoin before picking-up.")
+    print("\nThank you!")
+    print("-The Python Cookie Shop Robot.\n")
 
 def run_shop(cookies):
     """
